@@ -189,14 +189,6 @@ Sesiones seguras con Streamlit
 Validación de permisos por profesor
 Protección contra inyección SQL
 Validación de datos de entrada
-📞 Soporte y Contacto
-
-NovaUniversitas - Departamento de Sistemas
-
-📧 Email: soporte@novauniversitas.edu
-📞 Teléfono: (555) 123-4567
-🌐 Web: www.novauniversitas.edu
-🤝 Contribuciones
 
 Este sistema fue desarrollado siguiendo las mejores prácticas de desarrollo:
 
@@ -215,5 +207,3 @@ El sistema calcula automáticamente las calificaciones finales
 
 ✅ Base de datos SQLite con estructura completa ✅ Interfaz Streamlit moderna e intuitiva
 ✅ Carga desde Excel con plantillas automáticas ✅ 5 tipos de reportes PDF con firmas profesionales ✅ Login seguro con hash SHA-256 ✅ Estadísticas avanzadas con gráficos interactivos ✅ Estructura modular organizada por carpetas ✅ Datos de muestra realistas (5 profesores, 10 materias, 100 estudiantes) ✅ Calendario académico integrado con fechas reales ✅ Sistema de calificaciones con parciales (50%) + ordinario (50%)
-
-¡El sistema está listo para usar en VS Code con Streamlit! 🚀
