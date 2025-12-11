@@ -1,8 +1,12 @@
 import streamlit as st
 import os
 from utils.auth import require_auth, get_current_user
-from utils.pdf_generator import pdf_generator
+from utils.pdf_generator import PDFGenerator
 from database.database import db
+
+# Crear instancia del generador de PDF con el logo
+# El logo debe estar en la carpeta raíz o especifica la ruta completa
+pdf_generator = PDFGenerator(logo_path='logo.png')
 
 def show_reportes_page():
     """Muestra la página de generación de reportes"""
