@@ -8,8 +8,9 @@ from datetime import datetime
 import os
 
 class PDFGenerator:
-    def __init__(self):
+    def __init__(self, logo_path=None):
         self.styles = getSampleStyleSheet()
+        self.logo_path = logo_path
         self.setup_custom_styles()
     
     def setup_custom_styles(self):
@@ -17,8 +18,8 @@ class PDFGenerator:
         self.title_style = ParagraphStyle(
             'CustomTitle',
             parent=self.styles['Heading1'],
-            fontSize=16,
-            spaceAfter=30,
+            fontSize=14,
+            spaceAfter=8,
             alignment=TA_CENTER,
             textColor=colors.darkblue
         )
@@ -26,8 +27,8 @@ class PDFGenerator:
         self.header_style = ParagraphStyle(
             'CustomHeader',
             parent=self.styles['Heading2'],
-            fontSize=12,
-            spaceAfter=12,
+            fontSize=10,
+            spaceAfter=6,
             alignment=TA_LEFT,
             textColor=colors.black
         )
@@ -35,8 +36,8 @@ class PDFGenerator:
         self.normal_style = ParagraphStyle(
             'CustomNormal',
             parent=self.styles['Normal'],
-            fontSize=10,
-            spaceAfter=6,
+            fontSize=8,
+            spaceAfter=4,
             alignment=TA_LEFT
         )
     
@@ -44,32 +45,56 @@ class PDFGenerator:
         """Crea el encabezado del reporte"""
         elements = []
         
-        # Título principal
+        # Agregar logo si existe - MÁS PEQUEÑO Y PROPORCIONAL
+        if self.logo_path and os.path.exists(self.logo_path):
+            try:
+                # Cargar imagen y mantener proporción
+                from PIL import Image as PILImage
+                img = PILImage.open(self.logo_path)
+                aspect = img.height / img.width
+                
+                # Definir ancho máximo y calcular altura proporcional
+                logo_width = 1.2 * inch
+                logo_height = logo_width * aspect
+                
+                # Si la altura es muy grande, limitar por altura
+                if logo_height > 0.6 * inch:
+                    logo_height = 0.6 * inch
+                    logo_width = logo_height / aspect
+                
+                logo = Image(self.logo_path, width=logo_width, height=logo_height)
+                logo.hAlign = 'LEFT'
+                elements.append(logo)
+                elements.append(Spacer(1, 6))
+            except Exception as e:
+                print(f"Error al cargar el logo: {e}")
+        
+        # Título principal - más compacto
         title = f"NOVAUNIVERSITAS - REPORTE DE CALIFICACIONES"
         elements.append(Paragraph(title, self.title_style))
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 8))
         
-        # Información del profesor y materia
+        # Información del profesor y materia - más compacta
         info_data = [
-            ['Profesor:', f"{profesor_info['nombre']} {profesor_info['apellido_paterno']} {profesor_info['apellido_materno']}"],
-            ['Clave Profesor:', profesor_info['clave']],
-            ['Materia:', materia_info['nombre']],
-            ['Código Materia:', materia_info['codigo']],
-            ['Tipo de Reporte:', tipo_reporte],
-            ['Fecha de Generación:', datetime.now().strftime("%d/%m/%Y %H:%M")]
+            ['Profesor:', f"{profesor_info['nombre']} {profesor_info['apellido_paterno']} {profesor_info['apellido_materno']}", 'Clave:', profesor_info['clave']],
+            ['Materia:', materia_info['nombre'], 'Código:', materia_info['codigo']],
+            ['Tipo:', tipo_reporte, 'Fecha:', datetime.now().strftime("%d/%m/%Y %H:%M")]
         ]
         
-        info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+        info_table = Table(info_data, colWidths=[1*inch, 2.5*inch, 0.8*inch, 1.2*inch])
         info_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
             ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('FONTNAME', (3, 0), (3, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
         ]))
         
         elements.append(info_table)
-        elements.append(Spacer(1, 30))
+        elements.append(Spacer(1, 10))
         
         return elements
     
@@ -82,40 +107,40 @@ class PDFGenerator:
         
         # Definir columnas según el tipo de reporte
         if tipo_reporte == "Parcial 1":
-            headers = ['No.', 'Clave', 'Nombre Completo', 'Parcial 1', 'Firma Estudiante']
+            headers = ['No.', 'Clave', 'Nombre Completo', 'Parcial 1', 'Firma']
             data = [headers]
             for i, est in enumerate(estudiantes_data, 1):
                 nombre_completo = f"{est['apellido_paterno']} {est['apellido_materno']} {est['nombre']}"
                 calificacion = est['parcial_1'] if est['parcial_1'] is not None else "N/A"
                 data.append([str(i), est['clave'], nombre_completo, str(calificacion), ""])
-            col_widths = [0.5*inch, 1*inch, 3*inch, 1*inch, 1.5*inch]
+            col_widths = [0.35*inch, 0.9*inch, 3.2*inch, 0.7*inch, 1.35*inch]
             
         elif tipo_reporte == "Parcial 2":
-            headers = ['No.', 'Clave', 'Nombre Completo', 'Parcial 2', 'Firma Estudiante']
+            headers = ['No.', 'Clave', 'Nombre Completo', 'Parcial 2', 'Firma']
             data = [headers]
             for i, est in enumerate(estudiantes_data, 1):
                 nombre_completo = f"{est['apellido_paterno']} {est['apellido_materno']} {est['nombre']}"
                 calificacion = est['parcial_2'] if est['parcial_2'] is not None else "N/A"
                 data.append([str(i), est['clave'], nombre_completo, str(calificacion), ""])
-            col_widths = [0.5*inch, 1*inch, 3*inch, 1*inch, 1.5*inch]
+            col_widths = [0.35*inch, 0.9*inch, 3.2*inch, 0.7*inch, 1.35*inch]
             
         elif tipo_reporte == "Parcial 3":
-            headers = ['No.', 'Clave', 'Nombre Completo', 'Parcial 3', 'Firma Estudiante']
+            headers = ['No.', 'Clave', 'Nombre Completo', 'Parcial 3', 'Firma']
             data = [headers]
             for i, est in enumerate(estudiantes_data, 1):
                 nombre_completo = f"{est['apellido_paterno']} {est['apellido_materno']} {est['nombre']}"
                 calificacion = est['parcial_3'] if est['parcial_3'] is not None else "N/A"
                 data.append([str(i), est['clave'], nombre_completo, str(calificacion), ""])
-            col_widths = [0.5*inch, 1*inch, 3*inch, 1*inch, 1.5*inch]
+            col_widths = [0.35*inch, 0.9*inch, 3.2*inch, 0.7*inch, 1.35*inch]
             
         elif tipo_reporte == "Ordinario":
-            headers = ['No.', 'Clave', 'Nombre Completo', 'Ordinario', 'Firma Estudiante']
+            headers = ['No.', 'Clave', 'Nombre Completo', 'Ordinario', 'Firma']
             data = [headers]
             for i, est in enumerate(estudiantes_data, 1):
                 nombre_completo = f"{est['apellido_paterno']} {est['apellido_materno']} {est['nombre']}"
                 calificacion = est['ordinario'] if est['ordinario'] is not None else "N/A"
                 data.append([str(i), est['clave'], nombre_completo, str(calificacion), ""])
-            col_widths = [0.5*inch, 1*inch, 3*inch, 1*inch, 1.5*inch]
+            col_widths = [0.35*inch, 0.9*inch, 3.2*inch, 0.7*inch, 1.35*inch]
             
         else:  # Calificación Final
             headers = ['No.', 'Clave', 'Nombre Completo', 'P1', 'P2', 'P3', 'Ord.', 'Final', 'Firma']
@@ -128,9 +153,9 @@ class PDFGenerator:
                 ord_cal = est['ordinario'] if est['ordinario'] is not None else "N/A"
                 final = est['calificacion_final'] if est['calificacion_final'] is not None else "N/A"
                 data.append([str(i), est['clave'], nombre_completo, str(p1), str(p2), str(p3), str(ord_cal), str(final), ""])
-            col_widths = [0.4*inch, 0.8*inch, 2.2*inch, 0.5*inch, 0.5*inch, 0.5*inch, 0.5*inch, 0.6*inch, 1*inch]
+            col_widths = [0.3*inch, 0.75*inch, 2.3*inch, 0.4*inch, 0.4*inch, 0.4*inch, 0.4*inch, 0.5*inch, 0.95*inch]
         
-        # Crear tabla
+        # Crear tabla con diseño más compacto
         table = Table(data, colWidths=col_widths)
         table.setStyle(TableStyle([
             # Estilo del encabezado
@@ -138,46 +163,45 @@ class PDFGenerator:
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
             
-            # Estilo del contenido
+            # Estilo del contenido - MÁS COMPACTO
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('ALIGN', (2, 1), (2, -1), 'LEFT'),  # Nombres alineados a la izquierda
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white]),
+            ('TOPPADDING', (0, 1), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
             
             # Bordes
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            
-            # Altura de filas
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white]),
         ]))
         
         elements.append(table)
         return elements
     
     def create_signature_section(self, profesor_info):
-        """Crea la sección de firmas"""
+        """Crea la sección de firmas - MÁS COMPACTA"""
         elements = []
-        elements.append(Spacer(1, 40))
+        elements.append(Spacer(1, 15))
         
-        # Crear tabla para firmas
+        # Crear tabla para firmas más pequeña
         signature_data = [
-            ['', ''],
-            ['_' * 40, '_' * 40],
-            [f"Profesor: {profesor_info['nombre']} {profesor_info['apellido_paterno']} {profesor_info['apellido_materno']}", 'Vo.Bo. Coordinación Académica'],
+            ['_' * 35, '_' * 35],
+            [f"Profesor: {profesor_info['nombre']} {profesor_info['apellido_paterno']}", 'Vo.Bo. Coordinación Académica'],
             [f"Clave: {profesor_info['clave']}", '']
         ]
         
-        signature_table = Table(signature_data, colWidths=[3*inch, 3*inch])
+        signature_table = Table(signature_data, colWidths=[2.8*inch, 2.8*inch])
         signature_table.setStyle(TableStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 2), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 2), (-1, -1), 9),
-            ('TOPPADDING', (0, 1), (-1, 1), 10),
-            ('BOTTOMPADDING', (0, 1), (-1, 1), 5),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, 0), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 3),
         ]))
         
         elements.append(signature_table)
@@ -185,9 +209,10 @@ class PDFGenerator:
     
     def generate_report(self, profesor_info, materia_info, estudiantes_data, tipo_reporte, output_path):
         """Genera el reporte PDF completo"""
+        # Márgenes reducidos para aprovechar mejor el espacio
         doc = SimpleDocTemplate(output_path, pagesize=A4, 
-                              rightMargin=72, leftMargin=72, 
-                              topMargin=72, bottomMargin=18)
+                              rightMargin=50, leftMargin=50, 
+                              topMargin=40, bottomMargin=40)
         
         story = []
         
@@ -205,5 +230,5 @@ class PDFGenerator:
         
         return output_path
 
-# Instancia global del generador de PDF
-pdf_generator = PDFGenerator()
+# Ejemplo de uso con logo
+# pdf_generator = PDFGenerator(logo_path='logo.png')
